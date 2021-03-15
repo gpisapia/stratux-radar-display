@@ -80,7 +80,7 @@ situation = {'was_changed': True, 'last_update': 0.0,  'connected': False, 'gps_
              'own_altitude': -99.0, 'latitude': 0.0, 'longitude': 0.0, 'RadarRange': 5, 'RadarLimits': 10000,
              'gps_quality': 0, 'gps_h_accuracy': 20000}
 ahrs = {'was_changed': True, 'pitch': 0, 'roll': 0, 'heading': 0, 'slipskid': 0, 'gps_hor_accuracy': 20000,
-        'ahrs_sensor': False, 'ahrs_gpsspeed': 0, 'ahrs_gpsalt': 5688}
+        'ahrs_sensor': False, 'ahrs_gpsspeed': 0, 'ahrs_gpsalt': 0}
 # ahrs information, values are all rounded to integer
 
 max_pixel = 0
@@ -323,6 +323,12 @@ def new_situation(json_str):
         ahrs['was_changed'] = True
     if ahrs['slipskid'] != round(sit['AHRSSlipSkid']):
         ahrs['slipskid'] = round(sit['AHRSSlipSkid'])
+        ahrs['was_changed'] = True
+    if ahrs['ahrs_gpsspeed'] != round(sit['GPSGroundSpeed']):
+        ahrs['ahrs_gpsspeed'] = round(sit['GPSGroundSpeed'])
+        ahrs['was_changed'] = True
+    if ahrs['ahrs_gpsalt'] != round(sit['GPSAltitudeMSL']):
+        ahrs['ahrs_gpsalt'] = round(sit['GPSAltitudeMSL'])
         ahrs['was_changed'] = True
     if ahrs['gps_hor_accuracy'] != round(sit['GPSHorizontalAccuracy']):
         ahrs['gps_hor_accuracy'] = round(sit['GPSHorizontalAccuracy'])
