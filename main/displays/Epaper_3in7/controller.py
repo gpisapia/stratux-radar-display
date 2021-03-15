@@ -69,6 +69,10 @@ draw = None
 roll_posmarks = (-90, -60, -30, -20, -10, 0, 10, 20, 30, 60, 90)
 pitch_posmarks = (-30, -20, -10, 10, 20, 30)
 PITCH_SCALE = 4.0
+#following are pocpied from Oled update, it needs to be adjusted at screen size.
+H_SCREENSIZE = 100
+MARGIN = 3
+V_POS_MIDDLE = 50
 # end device globals
 
 
@@ -174,6 +178,14 @@ def centered_text(draw, y, text, font, fill):
     ts = draw.textsize(text, font)
     draw.text((zerox - ts[0] / 2, y), text, font=font, fill=fill)
 
+
+def left_just_text(draw, y, text, font, fill):
+    ts = draw.textsize(text, font)
+    draw.text((MARGIN, V_POS_MIDDLE), text, font=font, fill=fill)
+    
+def right_just_text(draw, y, text, font, fill):
+    ts = draw.textsize(text, font)
+    draw.text((H_SCREENSIZE - MARGIN / 2, V_POS_MIDDLE), text, font=font, fill=fill)
 
 def startup(draw, version, target_ip, seconds):
     logopath = str(Path(__file__).resolve().parent.joinpath('stratux-logo-192x192.bmp'))
@@ -348,7 +360,7 @@ def slip(draw, slipskid):
     draw.line((ah_zerox, sizey - slipsize * 2, ah_zerox, sizey - 1), fill="white", width=2)
 
 
-def ahrs(draw, pitch, roll, heading, slipskid, error_message):
+def ahrs(draw, pitch, roll, heading, slipskid, error_message, gps_speed, gps_alt):
     # print("AHRS: pitch ", pitch, " roll ", roll, " heading ", heading, " slipskid ", slipskid)
     h1, h2 = linepoints(pitch, roll, 0, 600)  # horizon points
     h3, h4 = linepoints(pitch, roll, -180, 600)
@@ -375,6 +387,12 @@ def ahrs(draw, pitch, roll, heading, slipskid, error_message):
     rollmarks(draw, roll)
     # slip indicator
     slip(draw, slipskid)
+    #following 2 calls need to be adjusted with real screen to ensure readability and placement.
+    # GPS speed
+    #left_just_text(draw, 30, str(gps_speed), smallfont, fill="white")
+    #GPS altitude
+    #right_just_text(draw, 30, str(gps_alt), smallfont, fill="white")
+
 
     # infotext = "P:" + str(pitch) + " R:" + str(roll)
     if error_message:
