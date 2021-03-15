@@ -80,7 +80,7 @@ situation = {'was_changed': True, 'last_update': 0.0,  'connected': False, 'gps_
              'own_altitude': -99.0, 'latitude': 0.0, 'longitude': 0.0, 'RadarRange': 5, 'RadarLimits': 10000,
              'gps_quality': 0, 'gps_h_accuracy': 20000}
 ahrs = {'was_changed': True, 'pitch': 0, 'roll': 0, 'heading': 0, 'slipskid': 0, 'gps_hor_accuracy': 20000,
-        'ahrs_sensor': False}
+        'ahrs_sensor': False, 'ahrs_gpsspeed': 0, 'ahrs_gpsalt': 5688}
 # ahrs information, values are all rounded to integer
 
 max_pixel = 0
@@ -123,7 +123,6 @@ def draw_display(draw):
     global aircraft_changed
     global ui_changed
 
-    logging.debug("List of all aircraft > " + json.dumps(all_ac))
     if situation['was_changed'] or aircraft_changed or ui_changed:
         # display is only triggered if there was a change
         display_control.clear(draw)
@@ -260,7 +259,7 @@ def new_traffic(json_str):
             return
             # unspecified altitude, nothing displayed for now, leave it as it is
         distcirc = traffic['DistanceEstimated'] / 1852.0
-        logging.debug("RADAR: Mode-S traffic " + hex(traffic['Icao_addr']) + " in " + str(distcirc) + " nm")
+        logging.debug("Mode-S Traffic " + hex(traffic['Icao_addr']) + " in " + str(distcirc) + " nm")
         distx = round(max_pixel / 2 * distcirc / situation['RadarRange'])
         if is_new or 'circradius' not in ac:
             # calc argposition if new or adsb before
@@ -352,7 +351,7 @@ async def listen_forever(path, name, callback):
                         message = await asyncio.wait_for(ws.recv(), timeout=CHECK_CONNECTION_TIMEOUT)
                         # message = await ws.recv()
                     except asyncio.TimeoutError:
-                        # No situation received or traffic in CHECK_CONNECTION_TIMEOUT seconds, retry to connect
+                        # No situation received in CHECK_CONNECTION_TIMEOUT seconds, retry to connect
                         logging.debug(name + ': TimeOut received waiting for message.')
                         if situation['connected'] is False:  # Probably connection lost
                             logging.debug(name + ': Watchdog detected connection loss.' +
@@ -367,7 +366,7 @@ async def listen_forever(path, name, callback):
                     except asyncio.CancelledError:
                         print(name + " shutting down ... ")
                         return
-                    else:
+                    if message is not None:
                         callback(message)
                     await asyncio.sleep(MINIMAL_WAIT_TIME)  # do a minimal wait to let others do their jobs
 
@@ -440,7 +439,6 @@ async def display_and_cutoff():
 
     try:
         while True:
-            await asyncio.sleep(MIN_DISPLAY_REFRESH_TIME)
             if display_control.is_busy():
                 await asyncio.sleep(display_refresh_time / 3)
                 # try it several times to be as fast as possible
@@ -461,19 +459,21 @@ async def display_and_cutoff():
                 elif global_mode == 5:   # ahrs'
                     ahrsui.draw_ahrs(draw, display_control, situation['connected'], ahrs['was_changed'], ahrs['pitch'],
                                      ahrs['roll'], ahrs['heading'], ahrs['slipskid'], ahrs['gps_hor_accuracy'],
-                                     ahrs['ahrs_sensor'])
+                                     ahrs['ahrs_sensor'],  ahrs['ahrs_gpsspeed'], ahrs['ahrs_gpsalt']
+                                     )
                 elif global_mode == 6:   # refresh display, only relevant for epaper, mode was radar
                     logging.debug("AHRS: Display driver - Refreshing")
                     display_control.refresh()
                     global_mode = 5
                 elif global_mode == 7:  # status display
                     statusui.draw_status(draw, display_control, bluetooth_active)
+                await asyncio.sleep(MIN_DISPLAY_REFRESH_TIME)
 
             to_delete = []
             cutoff = time.time() - RADAR_CUTOFF
             for icao, ac in all_ac.items():
                 if ac['last_contact_timestamp'] < cutoff:
-                    logging.debug("Cutting of " + hex(icao))
+                    logging.debug("Cutting of " + str(icao))
                     to_delete.append(icao)
                     aircraft_changed = True
             for i in to_delete:

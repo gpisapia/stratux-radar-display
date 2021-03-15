@@ -47,7 +47,7 @@ def init(display_control):   # prepare everything
     pass   # nothing to do in the setup now
 
 
-def draw_ahrs(draw, display_control, connected, was_changed, pitch, roll, heading, slip, gps_hor_accuracy, ahrs_sensor):
+def draw_ahrs(draw, display_control, connected, was_changed, pitch, roll, heading, slip, gps_hor_accuracy, ahrs_sensor, gps_speed, gps_alt):
     global ahrs_ui_changed
 
     if was_changed or ahrs_ui_changed:
@@ -62,7 +62,7 @@ def draw_ahrs(draw, display_control, connected, was_changed, pitch, roll, headin
         if not connected:
             error_message = MSG_NO_CONNECTION
         display_control.clear(draw)
-        display_control.ahrs(draw, pitch, roll, heading, slip, error_message)
+        display_control.ahrs(draw, pitch, roll, heading, slip, error_message, gps_speed, gps_alt)
         display_control.display()
 
 

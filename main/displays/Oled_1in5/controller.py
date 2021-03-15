@@ -46,6 +46,9 @@ VERYSMALL = 10  # used for "nm" and "ft"
 AIRCRAFT_SIZE = 3  # size of aircraft arrow
 MINIMAL_CIRCLE = 10  # minimal size of mode-s circle
 PITCH_SCALE = 1.5
+H_SCREENSIZE = 100
+MARGIN = 3
+V_POS_MIDDLE = 50
 # end definitions
 
 # device properties
@@ -124,7 +127,14 @@ def cleanup():
 def centered_text(draw, y, text, font, fill):
     ts = draw.textsize(text, font)
     draw.text((zerox - ts[0] / 2, y), text, font=font, fill=fill)
-
+    
+def left_just_text(draw, y, text, font, fill):
+    ts = draw.textsize(text, font)
+    draw.text((MARGIN, V_POS_MIDDLE), text, font=font, fill=fill)
+    
+def right_just_text(draw, y, text, font, fill):
+    ts = draw.textsize(text, font)
+    draw.text((H_SCREENSIZE - MARGIN / 2, V_POS_MIDDLE), text, font=font, fill=fill)
 
 def display():
     device.display(image)
@@ -318,7 +328,7 @@ def slip(draw, slipskid):
                   zerox - slipskid * slipscale + slipsize, device.height - 1), fill="white")
 
 
-def ahrs(draw, pitch, roll, heading, slipskid, error_message):
+def ahrs(draw, pitch, roll, heading, slipskid, error_message, gps_speed, gps_alt):
     # print("AHRS: pitch ", pitch, " roll ", roll, " heading ", heading, " slipskid ", slipskid)
     h1, h2 = linepoints(pitch, roll, 0, 200)  # horizon points
     h3, h4 = linepoints(pitch, roll, -180, 200)
@@ -338,6 +348,10 @@ def ahrs(draw, pitch, roll, heading, slipskid, error_message):
     rollmarks(draw, roll)
     # slip indicator
     slip(draw, slipskid)
+    # GPS speed
+    left_just_text(draw, 30, str(gps_speed), smallfont, fill="white")
+    #GPS altitude
+    right_just_text(draw, 30, str(gps_alt), smallfont, fill="white")
 
     # infotext = "P:" + str(pitch) + " R:" + str(roll)
     if error_message:
